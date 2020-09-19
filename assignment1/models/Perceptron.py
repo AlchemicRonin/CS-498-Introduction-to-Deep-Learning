@@ -29,7 +29,7 @@ class Perceptron:
             y_train: a numpy array of shape (N,) containing training labels
         """
         for epoch in range(self.epochs):
-            for i in range(len(X_train)):
+            for i in range(X_train.shape[0]):
                 train = np.append(X_train[i], 1).T
                 label_ = y_train[i]
                 for class_ in range(self.n_class):
@@ -51,9 +51,8 @@ class Perceptron:
                 class.
         """
         pre_label = np.zeros(X_test.shape[0])
-        for i in range(len(X_test)):
+        for i in range(X_test.shape[0]):
             test = np.append(X_test[i], 1).T
             score = self.w @ test
             pre_label[i] = np.argmax(score)
-        print(pre_label)
         return pre_label

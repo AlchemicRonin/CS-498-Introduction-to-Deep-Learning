@@ -4,7 +4,7 @@ import numpy as np
 
 
 class SVM:
-    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float):
+    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float, dim: int):
         """Initialize a new classifier.
 
         Parameters:
@@ -12,8 +12,9 @@ class SVM:
             lr: the learning rate
             epochs: the number of epochs to train for
             reg_const: the regularization constant
+            dim: the dimension of an input sample
         """
-        self.w = None  # TODO: change this
+        self.w = np.random.random((n_class, dim + 1))
         self.alpha = lr
         self.epochs = epochs
         self.reg_const = reg_const
@@ -35,8 +36,17 @@ class SVM:
             the gradient with respect to weights w; an array of the same shape
                 as w
         """
-        # TODO: implement me
-        return
+        for i in range(X_train.shape[0]):
+            train = np.append(X_train[i], 1).T
+            label_ = y_train[i]
+            for class_ in range(self.n_class):
+                self.w[class_] *= 1 - self.alpha * self.reg_const / self.n_class
+                if class_ == label_:
+                    continue
+                if self.w[label_] @ train - self.w[class_] @ train < 1:
+                    self.w[label_] += self.alpha * train
+                    self.w[class_] -= self.alpha * train
+        return self.w
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         """Train the classifier.
@@ -48,8 +58,8 @@ class SVM:
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
         """
-        # TODO: implement me
-        return
+        for epoch in range(self.epochs):
+            self.calc_gradient(X_train, y_train)
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
@@ -63,5 +73,9 @@ class SVM:
                 length N, where each element is an integer giving the predicted
                 class.
         """
-        # TODO: implement me
-        return
+        pre_label = np.zeros(X_test.shape[0])
+        for i in range(X_test.shape[0]):
+            test = np.append(X_test[i], 1).T
+            score = self.w @ test
+            pre_label[i] = np.argmax(score)
+        return pre_label
