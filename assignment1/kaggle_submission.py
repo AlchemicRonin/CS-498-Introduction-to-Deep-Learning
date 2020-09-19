@@ -13,7 +13,7 @@ def write_csv(file_path: str, y_list: np.ndarray):
         y_list: y predictions
     """
     solution_rows = [("id", "category")] + [(i, y) for (i, y) in enumerate(y_list)]
-    with open(file_path, "w") as f:
+    with open(file_path, "w", newline="\n") as f:
         writer = csv.writer(f)
         writer.writerows(solution_rows)
 
