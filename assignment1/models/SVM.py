@@ -43,7 +43,7 @@ class SVM:
                 self.w[class_] *= 1 - self.alpha * self.reg_const / self.n_class
                 if class_ == label_:
                     continue
-                if self.w[label_] @ train - self.w[class_] @ train < 1:
+                elif self.w[label_] @ train - self.w[class_] @ train < 1:
                     self.w[label_] += self.alpha * train
                     self.w[class_] -= self.alpha * train
         return self.w
@@ -57,10 +57,10 @@ class SVM:
             X_train: a numpy array of shape (N, D) containing training data;
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
-            batchSize: the size of one batch
+            batchSize: the size of one mini-batch for SGD
         """
         for epoch in range(self.epochs):
-            index = np.random.choice(X_train.shape[0], batchSize)
+            index = np.random.choice(X_train.shape[0], batchSize, replace=False)
             self.calc_gradient(X_train[index], y_train[index])
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:

@@ -4,14 +4,15 @@ import numpy as np
 
 
 class Logistic:
-    def __init__(self, lr: float, epochs: int):
+    def __init__(self, lr: float, epochs: int, dim: int):
         """Initialize a new classifier.
 
         Parameters:
             lr: the learning rate
             epochs: the number of epochs to train for
+            dim: the dimension of an input sample
         """
-        self.w = None  # TODO: change this
+        self.w = np.random.random((1, dim))
         self.lr = lr
         self.epochs = epochs
         self.threshold = 0.5
@@ -25,8 +26,8 @@ class Logistic:
         Returns:
             the sigmoid of the input
         """
-        # TODO: implement me
-        return
+        output = 1.0 / (1.0 + np.exp(-z))
+        return output
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         """Train the classifier.
@@ -38,8 +39,14 @@ class Logistic:
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
         """
-        # TODO: implement me
-        pass
+        for epoch in range(self.epochs):
+            tmp = 0.0
+            n = X_train.shape[0]
+            for i in range(n):
+                train = X_train[i].T
+                label_ = -1 if y_train[i] == 0 else 1
+                tmp += label_ * self.sigmoid(-label_ * self.w @ train) * train
+            self.w += self.lr * (tmp / n)
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
@@ -53,5 +60,9 @@ class Logistic:
                 length N, where each element is an integer giving the predicted
                 class.
         """
-        # TODO: implement me
-        return
+        pre_label = np.zeros(X_test.shape[0])
+        for i in range(X_test.shape[0]):
+            test = X_test[i].T
+            score = self.w @ test
+            pre_label[i] = 1 if score > 0 else 0
+        return pre_label
