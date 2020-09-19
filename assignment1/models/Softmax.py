@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Softmax:
-    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float):
+    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float, dim: int):
         """Initialize a new classifier.
 
         Parameters:
@@ -12,8 +12,9 @@ class Softmax:
             lr: the learning rate
             epochs: the number of epochs to train for
             reg_const: the regularization constant
+            dim: the dimension of an input sample
         """
-        self.w = None  # TODO: change this
+        self.w = np.random.random((n_class, dim + 1))
         self.lr = lr
         self.epochs = epochs
         self.reg_const = reg_const
@@ -34,10 +35,25 @@ class Softmax:
         Returns:
             gradient with respect to weights w; an array of same shape as w
         """
-        # TODO: implement me
-        return
+        for i in range(X_train.shape[0]):
+            train = np.append(X_train[i], 1).T
+            label_ = y_train[i]
+            prob = np.zeros(self.n_class)
+            for class_ in range(self.n_class):
+                prob[class_] = self.w[class_] @ train
+            prob_max = np.max(prob)
+            for class_ in range(self.n_class):
+                prob[class_] = np.exp(prob[class_] - prob_max)
+            prob /= np.sum(prob)
+            for class_ in range(self.n_class):
+                self.w[class_] *= 1 - self.lr * self.reg_const / X_train.shape[0]
+                if class_ == label_:
+                    self.w[class_] += self.lr * (1 - prob[class_]) * train
+                else:
+                    self.w[class_] -= self.lr * prob[class_] * train
+        return self.w
 
-    def train(self, X_train: np.ndarray, y_train: np.ndarray):
+    def train(self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int):
         """Train the classifier.
 
         Hint: operate on mini-batches of data for SGD.
@@ -46,9 +62,11 @@ class Softmax:
             X_train: a numpy array of shape (N, D) containing training data;
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
+            batch_size: the size of one mini-batch for SGD
         """
-        # TODO: implement me
-        return
+        for epoch in range(self.epochs):
+            index = np.random.choice(X_train.shape[0], batch_size, replace=False)
+            self.calc_gradient(X_train[index], y_train[index])
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
@@ -62,5 +80,9 @@ class Softmax:
                 length N, where each element is an integer giving the predicted
                 class.
         """
-        # TODO: implement me
-        return
+        pre_label = np.zeros(X_test.shape[0])
+        for i in range(X_test.shape[0]):
+            test = np.append(X_test[i], 1).T
+            score = self.w @ test
+            pre_label[i] = np.argmax(score)
+        return pre_label
