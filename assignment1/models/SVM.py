@@ -48,7 +48,7 @@ class SVM:
                     self.w[class_] -= self.alpha * train
         return self.w
 
-    def train(self, X_train: np.ndarray, y_train: np.ndarray):
+    def train(self, X_train: np.ndarray, y_train: np.ndarray, batchSize: int):
         """Train the classifier.
 
         Hint: operate on mini-batches of data for SGD.
@@ -57,9 +57,11 @@ class SVM:
             X_train: a numpy array of shape (N, D) containing training data;
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
+            batchSize: the size of one batch
         """
         for epoch in range(self.epochs):
-            self.calc_gradient(X_train, y_train)
+            index = np.random.choice(X_train.shape[0], batchSize)
+            self.calc_gradient(X_train[index], y_train[index])
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
