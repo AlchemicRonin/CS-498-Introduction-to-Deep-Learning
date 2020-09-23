@@ -18,7 +18,7 @@ class Perceptron:
         self.epochs = epochs
         self.n_class = n_class
 
-    def train(self, X_train: np.ndarray, y_train: np.ndarray):
+    def train(self, X_train: np.ndarray, y_train: np.ndarray, decay: float):
         """Train the classifier.
 
         Use the perceptron update rule as introduced in Lecture 3.
@@ -27,8 +27,10 @@ class Perceptron:
             X_train: a number array of shape (N, D) containing training data;
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
+            decay: the decay rate for the learning rate
         """
         for epoch in range(self.epochs):
+            self.lr *= decay
             for i in range(X_train.shape[0]):
                 train = np.append(X_train[i], 1).T
                 label_ = y_train[i]
