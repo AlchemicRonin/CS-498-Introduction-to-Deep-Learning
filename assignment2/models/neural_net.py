@@ -16,11 +16,11 @@ class NeuralNetwork:
     each class."""
 
     def __init__(
-        self,
-        input_size: int,
-        hidden_sizes: Sequence[int],
-        output_size: int,
-        num_layers: int,
+            self,
+            input_size: int,
+            hidden_sizes: Sequence[int],
+            output_size: int,
+            num_layers: int,
     ):
         """Initialize the model. Weights are initialized to small random values
         and biases are initialized to zero. Weights and biases are stored in
@@ -50,12 +50,27 @@ class NeuralNetwork:
 
         self.params = {}
         for i in range(1, num_layers + 1):
-            self.params["W" + str(i)] = np.random.randn(
-                sizes[i - 1], sizes[i]
-            ) / np.sqrt(sizes[i - 1])
+            self.params["W" + str(i)] = np.random.randn(sizes[i - 1], sizes[i]) / np.sqrt(sizes[i - 1])
             self.params["b" + str(i)] = np.zeros(sizes[i])
+        self.outputs = {}
+        self.m = {}
+        for i in range(1, num_layers + 1):
+            self.m["W" + str(i)] = np.zeros((sizes[i - 1], sizes[i])) / np.sqrt(sizes[i - 1])
+            self.m["b" + str(i)] = np.zeros(sizes[i])
+        self.v = {}
+        for i in range(1, num_layers + 1):
+            self.v["W" + str(i)] = np.zeros((sizes[i - 1], sizes[i])) / np.sqrt(sizes[i - 1])
+            self.v["b" + str(i)] = np.zeros(sizes[i])
+        self.m_hat = {}
+        for i in range(1, num_layers + 1):
+            self.m_hat["W" + str(i)] = np.zeros((sizes[i - 1], sizes[i])) / np.sqrt(sizes[i - 1])
+            self.m_hat["b" + str(i)] = np.zeros(sizes[i])
+        self.v_hat = {}
+        for i in range(1, num_layers + 1):
+            self.v_hat["W" + str(i)] = np.zeros((sizes[i - 1], sizes[i])) / np.sqrt(sizes[i - 1])
+            self.v_hat["b" + str(i)] = np.zeros(sizes[i])
 
-    def linear(self, W: np.ndarray, X: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def linear(self, X: np.ndarray, W: np.ndarray, b: np.ndarray) -> np.ndarray:
         """Fully connected (linear) layer.
 
         Parameters:
@@ -66,8 +81,7 @@ class NeuralNetwork:
         Returns:
             the output
         """
-        # TODO: implement me
-        return
+        return X.dot(W) + b
 
     def relu(self, X: np.ndarray) -> np.ndarray:
         """Rectified Linear Unit (ReLU).
@@ -78,8 +92,7 @@ class NeuralNetwork:
         Returns:
             the output
         """
-        # TODO: implement me
-        return
+        return np.maximum(0, X)
 
     def softmax(self, X: np.ndarray) -> np.ndarray:
         """The softmax function.
@@ -90,8 +103,9 @@ class NeuralNetwork:
         Returns:
             the output
         """
-        # TODO: implement me
-        return
+        aa = np.exp(X - np.max(X, axis=1, keepdims=True))
+        softmax_matrix = aa / np.sum(aa, axis=1, keepdims=True)
+        return softmax_matrix
 
     def forward(self, X: np.ndarray) -> np.ndarray:
         """Compute the scores for each class for all of the data samples.
@@ -106,16 +120,24 @@ class NeuralNetwork:
             Matrix of shape (N, C) where scores[i, c] is the score for class
                 c on input X[i] outputted from the last layer of your network
         """
-        self.outputs = {}
+
         # TODO: implement me. You'll want to store the output of each layer in
         # self.outputs as it will be used during back-propagation. You can use
         # the same keys as self.params. You can use functions like
         # self.linear, self.relu, and self.softmax in here.
-        return
+        self.outputs["L1" + str(0)] = X
+        self.outputs["L2" + str(0)] = X
+        for i in range(1, self.num_layers):
+            self.outputs["L1" + str(i)] = self.linear(self.outputs["L2" + str(i - 1)],
+                                                      self.params["W" + str(i)],
+                                                      self.params["b" + str(i)])
+            self.outputs["L2" + str(i)] = self.relu(self.outputs["L1" + str(i)])
+        self.outputs["L1" + str(self.num_layers)] = self.linear(self.outputs["L2" + str(self.num_layers - 1)],
+                                                                self.params["W" + str(self.num_layers)],
+                                                                self.params["b" + str(self.num_layers)])
+        return self.softmax(self.outputs["L1" + str(self.num_layers)])
 
-    def backward(
-        self, X: np.ndarray, y: np.ndarray, lr: float, reg: float = 0.0
-    ) -> float:
+    def backward(self, X: np.ndarray, y: np.ndarray, lr: float, reg: float) -> float:
         """Perform back-propagation and update the parameters using the
         gradients.
 
@@ -129,11 +151,25 @@ class NeuralNetwork:
         Returns:
             Total loss for this batch of training samples
         """
-        self.gradients = {}
         loss = 0.0
         # TODO: implement me. You'll want to store the gradient of each layer
         # in self.gradients if you want to be able to debug your gradients
         # later. You can use the same keys as self.params. You can add
         # functions like self.linear_grad, self.relu_grad, and
         # self.softmax_grad if it helps organize your code.
+        N = X.shape[0]
+        softmax_matrix = self.forward(X)
+
+        loss = np.sum(-np.log(softmax_matrix[np.arange(N), y] + 1e-8)) / N
+        for i in range(1, self.num_layers + 1):
+            loss += reg * (np.sum(self.params["W" + str(i)] * self.params["W" + str(i)]))
+
+        softmax_matrix[np.arange(N), y] -= 1
+        dz1 = softmax_matrix / N
+        for i in range(self.num_layers, 0, -1):
+            gw = np.dot(self.outputs["L2" + str(i - 1)].T, dz1) + 2 * reg * self.params["W" + str(i)]
+            gb = np.sum(dz1, axis=0) + 2 * reg * self.params["b" + str(i)]
+            dz1 = (dz1.dot(self.params["W" + str(i)].T)) * (self.outputs["L1" + str(i - 1)] > 0)
+            self.params["W" + str(i)] -= lr * gw
+            self.params["b" + str(i)] -= lr * gb
         return loss
