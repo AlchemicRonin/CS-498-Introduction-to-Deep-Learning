@@ -164,7 +164,7 @@ class YoloLoss(nn.Module):
             box2 = box_target[i].view(-1, 5)
             box1_xyxy = torch.FloatTensor(box1.shape)
             box2_xyxy = torch.FloatTensor(box2.shape)
-            S = torch.tensor(box_pred.shape[0] / 2)
+            S = torch.tensor(0.5 * box_pred.shape[0])
 
             box1_xyxy[:, :2] = box1[:, :2] / S - 0.5 * box1[:, 2:4]
             box1_xyxy[:, 2:4] = box1[:, :2] / S + 0.5 * box1[:, 2:4]
