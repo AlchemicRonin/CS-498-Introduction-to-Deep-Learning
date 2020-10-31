@@ -164,7 +164,7 @@ class YoloLoss(nn.Module):
             box2 = box_target[i].view(-1, 5)
             box1_xyxy = torch.FloatTensor(box1.shape)
             box2_xyxy = torch.FloatTensor(box2.shape)
-            S = torch.tensor(0.5 * box_pred.shape[0])
+            S = self.S
 
             box1_xyxy[:, :2] = box1[:, :2] / S - 0.5 * box1[:, 2:4]
             box1_xyxy[:, 2:4] = box1[:, :2] / S + 0.5 * box1[:, 2:4]
@@ -172,10 +172,9 @@ class YoloLoss(nn.Module):
             box2_xyxy[:, 2:4] = box2[:, :2] / S + 0.5 * box2[:, 2:4]
 
             iou = self.compute_iou(box1_xyxy[:, :4], box2_xyxy[:, :4])
-            max_iou, max_index = iou.max(0)
+            max_iou, max_index = torch.max(iou, 0)
             box_iou[i + max_index[0]][4] = max_iou[0]
             response_mask[i + max_index[0]] = 1
-        print(box_iou)
 
         return box_iou, response_mask
 
