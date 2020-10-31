@@ -4,4 +4,5 @@ cifar-10-batches-py/
 VOCdevkit_2007/
 VOCtest_06-Nov-2007.tar
 VOCtrainval_06-Nov-2007.tar
+*.pth
 __pycache__/
