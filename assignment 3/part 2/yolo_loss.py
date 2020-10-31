@@ -13,13 +13,15 @@ class YoloLoss(nn.Module):
         self.l_noobj = l_noobj
 
     def compute_iou(self, box1, box2):
-        '''Compute the intersection over union of two set of boxes, each box is [x1,y1,x2,y2].
+        """
+        Compute the intersection over union of two set of boxes, each box is [x1,y1,x2,y2].
         Args:
           box1: (tensor) bounding boxes, sized [N,4].
           box2: (tensor) bounding boxes, sized [M,4].
         Return:
           (tensor) iou, sized [N,M].
-        '''
+        """
+
         N = box1.size(0)
         M = box2.size(0)
 
@@ -69,7 +71,6 @@ class YoloLoss(nn.Module):
 
         Returns:
         reg_loss : scalar
-        
         """
 
         ##### CODE #####
@@ -91,7 +92,6 @@ class YoloLoss(nn.Module):
 
         Returns:
         contain_loss : scalar
-        
         """
 
         ##### CODE #####
@@ -151,7 +151,6 @@ class YoloLoss(nn.Module):
         Note: Over here initially x, y are the center of the box and w,h are width and height. 
         We perform this transformation to convert the correct coordinates into bounding box coordinates.
         5) Set the confidence of the box_target_iou of the bounding box to the maximum iou
-        
         """
 
         ##### CODE #####
@@ -179,18 +178,19 @@ class YoloLoss(nn.Module):
         return box_iou, response_mask
 
     def forward(self, pred_tensor, target_tensor):
-        '''
+        """
         pred_tensor: (tensor) size(batchsize,S,S,Bx5+20=30)
                       where B - number of bounding boxes this grid cell is a part of = 2
                             5 - number of bounding box values corresponding to [x, y, w, h, c]
                                 where x - x_coord, y - y_coord, w - width, h - height, c - confidence of having an object
                             20 - number of classes
-        
+
         target_tensor: (tensor) size(batchsize,S,S,30)
-        
+
         Returns:
         Total Loss
-        '''
+        """
+
         N = pred_tensor.size()[0]
 
         total_loss = None
