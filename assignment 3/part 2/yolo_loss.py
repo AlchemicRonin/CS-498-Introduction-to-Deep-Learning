@@ -176,7 +176,7 @@ class YoloLoss(nn.Module):
 
             iou = self.compute_iou(box1_xyxy[:, :4], box2_xyxy[:, :4])
             max_iou, max_index = torch.max(iou, 0)
-            box_iou[i + max_index[0]][4] = max_iou[0]
+            box_iou[i + max_index[0]][4] = max_iou[0].detach()
             response_mask[i + max_index[0]] = 1
 
         return box_iou, response_mask
